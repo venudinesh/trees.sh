@@ -1,5 +1,5 @@
 #!/bin/bash
-git clone https://github.com/CherishOS-Devices/device_realme_nashc.git -b C17-rising-13 device/realme/nashc
+git clone https://github.com/venudinesh/device_realme_nashc.git -b C17-rising-13 device_realme_nashc
 git clone https://github.com/nashc-dev/android_kernel_realme_mt6785.git -b lineage-20 kernel/realme/mt6785
 git clone https://gitlab.com/HowWof/android_vendor_realme_nashc.git -b tm vendor/realme/nashc
 git clone https://github.com/LineageOS/android_hardware_mediatek.git -b lineage-20 hardware/mediatek
