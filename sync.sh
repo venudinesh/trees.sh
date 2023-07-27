@@ -1,5 +1,5 @@
 #!/bin/bash
-git clone https://github.com/venudinesh/device_realme_nashc.git -b C17-cherish-qpr3 device/realme/nashc
+git clone https://github.com/venudinesh/device_realme_nashc.git-b C17-rising-qpr3 device/realme/nashc
 git clone https://github.com/LineageOS/android_hardware_oplus.git -b lineage-20 hardware/oplus
 git clone https://github.com/LineageOS/android_device_mediatek_sepolicy_vndr.git -b lineage-20 device/mediatek/sepolicy_vndr
 git clone https://github.com/LineageOS/android_hardware_mediatek.git -b lineage-20 hardware/mediatek
