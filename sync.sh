@@ -1,6 +1,7 @@
 #!/bin/bash
 git clone https://github.com/venudinesh/c18.git -b derp device/realme/nashc
 git clone https://github.com/LineageOS/android_hardware_oplus.git -b lineage-20 hardware/oplus
+git clone https://github.com/LineageOS/android_hardware_oplus.git -b lineage-20 vendor/hardware/oplus
 git clone https://github.com/LineageOS/android_device_mediatek_sepolicy_vndr.git -b lineage-20 device/mediatek/sepolicy_vndr
 git clone https://github.com/venudinesh/mediatek.git -b main hardware/mediatek
 git clone https://github.com/nashc-dev/android_hardware_mediatek_wlan.git -b lineage-20 hardware/mediatek/wlan
