@@ -1,0 +1,97 @@
+diff --git a/core/res/res/values/voltage_config.xml b/core/res/res/values/voltage_config.xml
+index a119c49d8916..2fc272bea263 100644
+--- a/core/res/res/values/voltage_config.xml
++++ b/core/res/res/values/voltage_config.xml
+@@ -71,10 +71,10 @@
+     <bool name="config_hasTurboPowerCharger">false</bool>
+ 
+     <!-- Path to fast charging status file to detect whether an oem fast charger is active -->
+-    <string name="config_oemFastChargerStatusPath" translatable="false">/sys/class/power_supply/battery/fastchg_status</string>
++    <string name="config_oemFastChargerStatusPath" translatable="false"></string>
+ 
+     <!-- Path to fast charging status file to detect whether an oem fast charger is active -->
+-    <string name="config_oemFastChargerStatusPath2" translatable="false">/sys/class/power_supply/battery/voocchg_ing</string>
++    <string name="config_oemFastChargerStatusPath2" translatable="false"></string>
+ 
+     <!-- Expected value from fast charging status file  -->
+     <string name="config_oemFastChargerStatusValue" translatable="false">1</string>
+diff --git a/packages/SystemUI/res/values/voltage_config.xml b/packages/SystemUI/res/values/voltage_config.xml
+index f852aef4bc74..b9a0d443a817 100644
+--- a/packages/SystemUI/res/values/voltage_config.xml
++++ b/packages/SystemUI/res/values/voltage_config.xml
+@@ -42,6 +42,10 @@
+     <!-- Whether to enable framework dimming for UDFPS -->
+     <bool name="config_udfpsFrameworkDimming">false</bool>
+ 
++    <!-- File path to use for getting brightness for framework dimming.
++    If none brightness is retrieved from framework. -->
++    <string name="config_udfpsFrameworkDimmingBrightnessPath" translatable="false"></string>
++
+     <!-- Array of brightness-alpha LUT for framework dimming -->
+     <string-array name="config_udfpsDimmingBrightnessAlphaArray" translatable="false">
+           <!-- Example:
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index a896438285d7..05e9461738af 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -121,6 +121,10 @@ import java.util.ArrayList;
+ import java.util.HashSet;
+ import java.util.Set;
+ import java.util.concurrent.Executor;
++import java.io.BufferedReader;
++import java.io.FileReader;
++import java.io.IOException;
++
+ 
+ import javax.inject.Inject;
+ import javax.inject.Provider;
+@@ -1082,17 +1086,46 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         return ya - (ya - yb) * (x - xa) / (xb - xa);
+     }
+ 
+-    private int getBrightness() {
+-        int brightness = Settings.System.getInt(mContext.getContentResolver(),
++
++    // Function to get brightness from system settings
++    private int getBrightnessFromFramework() {
++        return Settings.System.getInt(mContext.getContentResolver(),
+                 Settings.System.SCREEN_BRIGHTNESS, 100);
+-        // Since the brightness is taken from the system settings, we need to interpolate it
++    }
++
++    // Optimized function to get brightness from a file
++    private int getBrightnessFromFile(String brightnessPath) {
++        try (BufferedReader reader = new BufferedReader(new FileReader(brightnessPath), 64)) {
++            String line = reader.readLine();
++            return Integer.parseInt(line.trim());
++        } catch (IOException | NumberFormatException e) {
++            Log.e(TAG, "getBrightnessFromFile | Exception: " + e);
++            return -1;  // Return a default value or an error indicator
++        }
++    }
++
++    // Function to get brightness, with preference for file path and interpolation
++    private int getBrightness() {
++        // Read config_udfpsFrameworkDimmingBrightnessPath to get the brightness
++        String brightnessPath = mContext.getResources().getString(R.string.config_udfpsFrameworkDimmingBrightnessPath);
++        int brightness = (brightnessPath != null && !brightnessPath.isEmpty()) 
++                ? getBrightnessFromFile(brightnessPath) 
++                : getBrightnessFromFramework();
++
++        if (brightness < 0) {  // If file read failed, fall back to framework
++            brightness = getBrightnessFromFramework();
++        }
++
++        // Perform interpolation
+         final int brightnessMin = mContext.getResources().getInteger(
+                 com.android.systemui.R.integer.config_udfpsDimmingBrightnessMin);
+         final int brightnessMax = mContext.getResources().getInteger(
+                 com.android.systemui.R.integer.config_udfpsDimmingBrightnessMax);
++        
+         if (brightnessMax > 0) {
+             brightness = interpolate(brightness, 0, 255, brightnessMin, brightnessMax);
+         }
++        
+         return brightness;
+     }
+ 
